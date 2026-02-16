@@ -18,7 +18,7 @@ import {
 import { ArrowBack } from "@mui/icons-material";
 import { useNavigate, useLocation} from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchStudents } from "../redux/slices/studentSlice";
+import { fetchStudentById } from "../redux/slices/studentSlice";
 import StatusModal from "../generic/StatusModel";
 
 
@@ -32,18 +32,20 @@ const AddPayment = () => {
   const location = useLocation();
 
 
-  const { students,loading } = useSelector((state) => state.students);
+  const { selectedStudent, loading, error } = useSelector(
+  (state) => state.students
+);
+
 
   const [studentId, setStudentId] = useState("");
   const [student, setStudent] = useState(null);
-  const [course, setCourse] = useState(null);
   const [payments, setPayments] = useState([]);
 
   const [discount, setDiscount] = useState(0);
   const [payAmount, setPayAmount] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("");
   const [transactionId, setTransactionId] = useState("");
-  const [error, setError] = useState("");
+  const [localError, setLocalError] = useState("");
 
 
 const [statusModal, setStatusModal] = useState({
@@ -61,61 +63,37 @@ const [statusModal, setStatusModal] = useState({
   }
 }, [location.state]);
 
-useEffect(() => {
-  if (studentId && students.length > 0) {
-    handleFetchStudent();
-  }
-}, [studentId, students]);
-
-
-  useEffect(() => {
-    dispatch(fetchStudents());
-  }, [dispatch]);
 
   /* ================= FETCH STUDENT ================= */
   const handleFetchStudent = async () => {
-    const foundStudent = students.find(
-      (s) => String(s.id) === String(studentId)
-    );
+  if (!studentId) {
+    setLocalError("Please enter Student ID");
+    return;
+  }
 
-    if (!foundStudent) {
-      setError("Student not found");
-      setStudent(null);
-      return;
-    }
+  const result = await dispatch(fetchStudentById(studentId));
 
-    setStudent(foundStudent);
-    setDiscount(Number(foundStudent.discount || 0));
-    setError("");
+  if (fetchStudentById.fulfilled.match(result)) {
+    const studentData = result.payload;
 
-    // Fetch Course
-    const courseRes = await fetch("http://localhost:8080/courses");
-    const courseData = await courseRes.json();
-    const foundCourse = courseData.find(
-      (c) => c.id === foundStudent.courseId
-    );
-    setCourse(foundCourse);
+    console.log("Student:", studentData);
 
-    // Fetch Payments
-    const paymentRes = await fetch("http://localhost:8080/payments");
-    const paymentData = await paymentRes.json();
-    setPayments(
-      paymentData.filter(
-        (p) => String(p.studentId) === String(studentId)
-      )
-    );
-  };
+    setStudent(studentData);
+    setDiscount(Number(studentData.discount || 0));
+    setLocalError("");
+  } else {
+    setStudent(null);
+    setLocalError("Student not found");
+  }
+};
+
 
   /* ================= CALCULATIONS ================= */
-  const totalFee = course?.totalFee || 0;
-  const actualFee = course?.totalFee - discount;
+const totalFee = student?.studentFees?.totalFees || 0;
+const amountPaid = student?.studentFees?.paidAmount || 0;
+const pendingAmount = student?.studentFees?.pendingAmount || 0;
 
-  const amountPaid = payments.reduce(
-    (sum, p) => sum + Number(p.amount),
-    0
-  );
-
-  const pendingAmount = totalFee - discount - amountPaid;
+const actualFee = totalFee - discount;
 
   /* ================= SAVE PAYMENT ================= */
  const handlePayment = async () => {
@@ -143,16 +121,18 @@ useEffect(() => {
   }
 
   try {
-    const response = await fetch("http://localhost:8080/payments", {
+    const response = await fetch("http://localhost:8082/payment", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         studentId,
-        amount: Number(payAmount),
-        paymentMethod : paymentMethod,
+        paidAmount: Number(payAmount),
+        paymentMode : paymentMethod,
         transactionId: paymentMethod === "Cash" ? null : transactionId,
-        totalFee: totalFee,
+        totalFees: totalFee,
+        actualFees: actualFee,
         pendingAmount:pendingAmount,
+        transactionId : transactionId,
         date: new Date().toLocaleDateString(),
       }),
     });
@@ -261,7 +241,7 @@ useEffect(() => {
             </Grid>
           </Grid>
 
-          {student && course && (
+          {student && (
             <>
               {/* ================= STUDENT INFO ================= */}
               <Typography fontWeight={700} mb={1}>
@@ -283,7 +263,8 @@ useEffect(() => {
                   />
                 </Grid>
                 <Grid item xs={12} sm={4}>
-                  <InfoItem label="Course" value={course.courseName} />
+                  <InfoItem label="Course Number" value={student.courseNumber} />
+
                 </Grid>
               </Grid>
 

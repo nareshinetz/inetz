@@ -24,7 +24,7 @@ const TransactionDetails = () => {
   );
 
   const transaction = transactions.find(
-    (t) => String(t.id) === String(id)
+    (t) => String(t.paymentId) === String(id)
   );
 
   useEffect(() => {
@@ -84,35 +84,23 @@ const TransactionDetails = () => {
 
           <Grid container spacing={3}>
             <Grid item xs={12} sm={4}>
-              <InfoItem label="Transaction ID" value={transaction.id} />
+              <InfoItem label="Transaction ID" value={transaction.paymentId} />
             </Grid>
 
             <Grid item xs={12} sm={4}>
-              <InfoItem
-                label="Student ID"
-                value={transaction.studentId}
-              />
+              <InfoItem label="Student ID" value={transaction.studentId} />
             </Grid>
 
             <Grid item xs={12} sm={4}>
-              <InfoItem
-                label="Payment Method"
-                value={transaction.paymentMode}
-              />
+              <InfoItem label="Student Name" value={transaction.studentName} />
             </Grid>
 
             <Grid item xs={12} sm={4}>
-              <InfoItem
-                label="Payment Date"
-                value={transaction.date}
-              />
+              <InfoItem label="Payment Method" value={transaction.paymentMode || "-"} />
             </Grid>
 
             <Grid item xs={12} sm={4}>
-              <InfoItem
-                label="Status"
-                value={transaction.status}
-              />
+              <InfoItem label="Payment Date" value={transaction.paymentDate} />
             </Grid>
           </Grid>
 
@@ -124,23 +112,17 @@ const TransactionDetails = () => {
 
           <Grid container spacing={3}>
             <Grid item xs={12} sm={4}>
-              <InfoItem
-                label="Total Fees"
-                value={`₹${transaction.totalFee}`}
-              />
+              <InfoItem label="Total Fees" value={`₹${transaction.totalFees || "-"}`} />
             </Grid>
 
             <Grid item xs={12} sm={4}>
-              <InfoItem
-                label="Paid Amount"
-                value={`₹${transaction.amount}`}
-              />
+              <InfoItem label="Paid Amount" value={`₹${transaction.paidAmount || 0}`} />
             </Grid>
 
             <Grid item xs={12} sm={4}>
               <InfoItem
                 label="Pending Amount"
-                value={`₹${transaction.pendingAmount}`}
+                value={`₹${transaction.pendingAmount || 0}`}
                 highlight
               />
             </Grid>

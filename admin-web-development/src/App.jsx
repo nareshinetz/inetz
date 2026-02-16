@@ -26,6 +26,7 @@ import AddCourse from "./pages/AddCourse";
 
 import TransactionHistory from "./pages/TransactionHistory";
 import TransactionDetails from "./pages/ViewTransactions";
+import ListCourses from "./pages/ListCourse";
 
 function App() {
   return (
@@ -48,6 +49,8 @@ function App() {
             <Route path="/leads/add" element={<AddLeads />} />
             <Route path="/leads/list" element={<ListLead />} />
             <Route path="/addcourse" element={<AddCourse />} />
+             <Route path="/courses/edit/:id" element={<AddCourse />} />
+            <Route path="/listcourse" element={<ListCourses />} />
             <Route path="/addpayment" element={<AddPayment />} />
             <Route path="/transactionhistory" element={<TransactionHistory />} />
             <Route path="/transactions/view/:id"element={<TransactionDetails />}/>

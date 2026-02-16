@@ -1,246 +1,93 @@
-// import React, { useState } from "react";
-// import {
-//   Box,
-
-//   Card,
-//   CardContent,
-//   Alert,
-//   CircularProgress,
-// } from "@mui/material";
-// import CustomTypograpy from "../generic/Typography";
-// import CustomButton from "../generic/Button";
-// import CustomInput from '../generic/Input';
-// import { useNavigate } from "react-router-dom";
-
-// import { useDispatch, useSelector } from 'react-redux';
-// import { addStaff } from '../redux/slices/staffSlice';
-
-// const AddStaff = () => {
-//   const navigate = useNavigate();
-
-//   const dispatch = useDispatch();
-//   const { loading, error } = useSelector((state) => state.staff);
-
-//   const [formData, setFormData] = useState({
-//     fullName: "",
-//     email: "",
-//     phoneNumber: "",
-//     yearsOfExperience: "",
-//     skills: "",
-//     dateOfJoining: "",
-//   });
-
-//   const [errors, setErrors] = useState({});
-//   const [showSuccess, setShowSuccess] = useState(false);
-
-//   const handleChange = (e) => {
-//     const { name, value } = e.target;
-//     setFormData((prev) => ({
-//       ...prev,
-//       [name]: value,
-//     }))
-
-//     if (errors[name]) {
-//       setErrors((prev) => ({
-//         ...prev,
-//         [name]: false,
-//       }));
-//     }
-//   }
-
-//   const validateForm = () => {
-//     const newErrors = {};
-//     if (!formData.fullName.trim()) newErrors.fullName = true;
-//     if (!formData.email.trim()) newErrors.email = true;
-//     if (!formData.phoneNumber.trim()) newErrors.phoneNumber = true;
-//     if (!formData.yearsOfExperience.trim()) newErrors.yearsOfExperience = true;
-//     if (!formData.dateOfJoining.trim()) newErrors.dateOfJoining = true;
-
-//     setErrors(newErrors);
-//     return Object.keys(newErrors).length === 0
-//   }
-
-//   const handleSubmit = async (e) => {
-//     e.preventDefault();
-//     if (validateForm()) {
-//       try {
-//         await dispatch(addStaff(formData)).unwrap();
-
-//         setShowSuccess(true);
-
-//         setTimeout(() => {
-//           navigate("/staff/list");
-//         }, 1500);
-//       } catch (err) {
-//         console.error("Failed to add staff:", err);
-
-//       }
-//     }
-//   }
-
-//   if (loading) {
-//     return (
-//       <Box display="flex" justifyContent="center" alignItems="center" minHeight="300px">
-//         <CircularProgress />
-//       </Box>
-//     );
-//   }
-
-//   // Conditionally render success alert (local state)
-
-//   if (showSuccess) {
-//     return (
-//       <Box
-//         display="flex"
-//         justifyContent="center"
-//         alignItems="center"
-//         minHeight="300px"
-//       >
-//         <Alert severity="success" sx={{ width: "100%", maxWidth: 400 }}>
-//           Staff member added successfully! Redirecting to staff list...
-//         </Alert>
-//       </Box>
-//     );
-//   }
-
-//   // ADDED: Conditional rendering for Error state (Redux state)
-
-//   if (error) {
-//     return (
-//       <Box display="flex" justifyContent="center" alignItems="center" minHeight="300px">
-//         <Alert severity="error" sx={{ width: "100%", maxWidth: 400 }}>
-//           Failed to add staff: {error}
-//         </Alert>
-//       </Box>
-//     );
-//   }
-
-//   return (
-//     <Box>
-//       <CustomTypograpy >
-//         Add Staff
-//       </CustomTypograpy>
-
-//       <Card elevation={1}>
-//         <CardContent sx={{ p: 4 }}>
-//           <form onSubmit={handleSubmit}>
-//             <Box
-//               sx={{
-//                 display: "flex",
-//                 flexWrap: "wrap",
-//                 gap: 3,
-//                 justifyContent: "space-between",
-//               }}
-//             >
-//               <CustomInput
-//                 label="Full Name"
-//                 name="fullName"
-//                 placeholder="Enter full name"
-//                 value={formData.fullName}
-//                 onChange={handleChange}
-//                 error={errors.fullName}
-//               />
-
-//               <CustomInput
-//                 label="Email"
-//                 name="email"
-//                 type="email"
-//                 placeholder="Email@xyz.com"
-//                 value={formData.email}
-//                 onChange={handleChange}
-//                 error={errors.email}
-//               />
-
-//               <CustomInput
-//                 label="Phone Number"
-//                 name="phoneNumber"
-//                 placeholder="+91-9999999999"
-//                 value={formData.phoneNumber}
-//                 onChange={handleChange}
-//                 error={errors.phoneNumber}
-//               />
-
-//               <CustomInput
-//                 label="Years of Experience"
-//                 name="yearsOfExperience"
-//                 type="number"
-//                 placeholder="e.g. 5"
-//                 value={formData.yearsOfExperience}
-//                 onChange={handleChange}
-//                 error={errors.yearsOfExperience}
-//               />
-
-//               <CustomInput
-//                 label="Skills"
-//                 name="skills"
-//                 placeholder="React, Node.js"
-//                 value={formData.skills}
-//                 onChange={handleChange}
-//               />
-
-//               <CustomInput
-//                 label="Date of Joining"
-//                 name="dateOfJoining"
-//                 type="date"
-//                 value={formData.dateOfJoining}
-//                 onChange={handleChange}
-//                 error={errors.dateOfJoining}
-//                 InputLabelProps={{ shrink: true }}
-//               />
-
-//               <Box
-//                 sx={{
-//                   width: "100%",
-//                   display: "flex",
-//                   justifyContent: "flex-end",
-//                   gap: 2,
-//                   mt: 2,
-//                 }}
-//               >
-//                 <CustomButton
-//                   label="Cancel"
-//                   color="error"
-//                   variant="outlined"
-//                   onClick={() => navigate("/staff/list")}
-//                 />
-//                 <CustomButton type="submit" label="Submit" />
-//               </Box>
-//             </Box>
-//           </form>
-//         </CardContent>
-//       </Card>
-//     </Box>
-//   );
-// };
-
-// export default AddStaff;
-
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Card,
   CardContent,
+  Typography,
+  Grid,
   MenuItem,
   Alert,
   CircularProgress,
+  Stack,
 } from "@mui/material";
+import {
+  Person as PersonIcon,
+} from "@mui/icons-material";
 import CustomInput from "../generic/Input";
 import CustomButton from "../generic/Button";
-import CustomTypography from "../generic/Typography";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
+const inputStyle = {
+  "& .MuiOutlinedInput-root": {
+    borderRadius: 2,
+    bgcolor: "white",
+    minHeight: 56,
+    "& fieldset": {
+      borderColor: "grey.300",
+      borderWidth: 1.5,
+    },
+    "&:hover fieldset": {
+      borderColor: "primary.main",
+    },
+    "&.Mui-focused fieldset": {
+      borderWidth: 2,
+    },
+  },
+  "& .MuiInputLabel-root": {
+    fontWeight: 500,
+    fontSize: "0.95rem",
+  },
+  "& .MuiInputBase-input": {
+    fontSize: "0.95rem",
+    padding: "16.5px 14px",
+  },
+  "& .MuiSelect-select": {
+    paddingTop: "16.5px",
+    paddingBottom: "16.5px",
+  },
+};
+
+const selectProps = {
+  MenuProps: {
+    PaperProps: {
+      sx: {
+        maxHeight: 300,
+        mt: 1,
+        boxShadow: "0 8px 32px rgba(0,0,0,0.12)",
+        borderRadius: 2,
+        "& .MuiMenuItem-root": {
+          fontSize: "0.95rem",
+          py: 1.5,
+          px: 2,
+          "&:hover": {
+            bgcolor: "primary.50",
+          },
+          "&.Mui-selected": {
+            bgcolor: "primary.100",
+            fontWeight: 600,
+            "&:hover": {
+              bgcolor: "primary.200",
+            },
+          },
+        },
+      },
+    },
+  },
+};
+
 const AddStaff = () => {
   const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     staffName: "",
     emailId: "",
     phoneNumber: "",
-    city: "",
+    cityName: "",
     degree: "",
     aadharCard: "",
     panCard: "",
-    role: "",
+    roleName: "",
     skills: "",
     joiningDate: "",
     salary: "",
@@ -249,10 +96,10 @@ const AddStaff = () => {
 
   const [roles, setRoles] = useState([]);
   const [skills, setSkills] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [errors, setErrors] = useState({});
 
-  // Fetch dropdown data
   useEffect(() => {
     const fetchDropdowns = async () => {
       try {
@@ -261,217 +108,338 @@ const AddStaff = () => {
         setRoles(roleRes.data);
         setSkills(skillRes.data);
       } catch (err) {
-        console.error("Error fetching dropdown data:", err);
+        console.error("Dropdown fetch error:", err);
       }
     };
     fetchDropdowns();
   }, []);
 
-  // Handle change
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: false }));
   };
 
-  // Validation
   const validateForm = () => {
-    const required = [
-      "staffName",
-      "emailId",
-      "phoneNumber",
-      "city",
-      "degree",
-      "aadharCard",
-      "panCard",
-      "role",
-      "skills",
-      "joiningDate",
-      "salary",
-      "originalCertificate",
-    ];
-
+    const requiredFields = Object.keys(formData);
     const newErrors = {};
-    required.forEach((key) => {
-      if (!formData[key].trim()) newErrors[key] = true;
+    requiredFields.forEach((field) => {
+      if (!formData[field]?.toString().trim()) {
+        newErrors[field] = true;
+      }
     });
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  // Handle submit
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
 
     try {
-      const response = await axios.post(
-        "http://localhost:8080/staff",
-        formData
-      );
-      console.log("Response:", response.data);
+      setLoading(true);
+      await axios.post("http://localhost:8080/staff", formData);
       setShowSuccess(true);
-
       setTimeout(() => navigate("/staff/list"), 1500);
-    } catch (error) {
-      console.error("Error submitting staff:", error);
-      alert("Failed to add staff. Please try again.");
+    } catch (err) {
+      console.error(err);
+      alert("Failed to add staff");
+    } finally {
+      setLoading(false);
     }
   };
 
+  if (loading)
+    return (
+      <Box display="flex" justifyContent="center" mt={10}>
+        <CircularProgress />
+      </Box>
+    );
+
   if (showSuccess)
     return (
-      <Box
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        minHeight="300px"
-      >
-        <Alert severity="success" sx={{ width: "100%", maxWidth: 400 }}>
+      <Box display="flex" justifyContent="center" mt={10}>
+        <Alert severity="success">
           Staff Added Successfully! Redirecting...
         </Alert>
       </Box>
     );
 
   return (
-    <Box>
-      <CustomTypography>Add Staff</CustomTypography>
+    <Box sx={{ p: 3 }}>
+      {/* Page Header */}
+      <Box sx={{ mb: 4 }}>
+        <Typography
+          variant="h5"
+          fontWeight={700}
+          sx={{
+            mb: 1,
+            background: "linear-gradient(135deg, #1a1a1a 0%, #4a4a4a 100%)",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+          }}
+        >
+          Add New Staff Member
+        </Typography>
+      </Box>
 
-      <Card>
-        <CardContent sx={{ p: 4 }}>
+      {/* WHITE BACKGROUND CARD - FULL WIDTH LIKE STUDENT FORM */}
+      <Card
+        elevation={0}
+        sx={{
+          borderRadius: 3,
+          border: "1px solid",
+          borderColor: "divider",
+          overflow: "hidden",
+          width: "100%",
+          maxWidth: "none"
+        }}
+      >
+        <CardContent sx={{ p: { xs: 4, sm: 4, md: 5 } }}>
           <form onSubmit={handleSubmit}>
-            <Box
-              sx={{
-                display: "flex",
-                flexWrap: "wrap",
-                gap: 3,
-                justifyContent: "space-between",
-              }}
-            >
-              <CustomInput
-                label="Staff Name"
-                name="staffName"
-                value={formData.staffName}
-                onChange={handleChange}
-                error={errors.staffName}
-              />
-              <CustomInput
-                label="Email ID"
-                name="emailId"
-                type="email"
-                value={formData.emailId}
-                onChange={handleChange}
-                error={errors.emailId}
-              />
-              <CustomInput
-                label="Phone Number"
-                name="phoneNumber"
-                type="number"
-                value={formData.phoneNumber}
-                onChange={handleChange}
-                error={errors.phoneNumber}
-              />
-              <CustomInput
-                label="City"
-                name="city"
-                value={formData.city}
-                onChange={handleChange}
-                error={errors.city}
-              />
-              <CustomInput
-                label="Degree"
-                name="degree"
-                value={formData.degree}
-                onChange={handleChange}
-                error={errors.degree}
-              />
-              <CustomInput
-                label="Aadhar Card"
-                name="aadharCard"
-                value={formData.aadharCard}
-                onChange={handleChange}
-                error={errors.aadharCard}
-              />
-              <CustomInput
-                label="Pan Card"
-                name="panCard"
-                value={formData.panCard}
-                onChange={handleChange}
-                error={errors.panCard}
-              />
-
-              <CustomInput
-                select
-                label="Role"
-                name="role"
-                value={formData.role}
-                onChange={handleChange}
-                error={errors.role}
-              >
-                {roles.map((opt) => (
-                  <MenuItem key={opt.id} value={opt.name}>
-                    {opt.name}
-                  </MenuItem>
-                ))}
-              </CustomInput>
-
-              <CustomInput
-                select
-                label="Skills"
-                name="skills"
-                value={formData.skills}
-                onChange={handleChange}
-                error={errors.skills}
-              >
-                {skills.map((opt) => (
-                  <MenuItem key={opt.id} value={opt.name}>
-                    {opt.name}
-                  </MenuItem>
-                ))}
-              </CustomInput>
-
-              <CustomInput
-                type="date"
-                label="Joining Date"
-                name="joiningDate"
-                value={formData.joiningDate}
-                onChange={handleChange}
-                error={errors.joiningDate}
-                InputLabelProps={{ shrink: true }}
-              />
-              <CustomInput
-                label="Salary"
-                name="salary"
-                type="number"
-                value={formData.salary}
-                onChange={handleChange}
-                error={errors.salary}
-              />
-              <CustomInput
-                label="Original Certificate"
-                name="originalCertificate"
-                value={formData.originalCertificate}
-                onChange={handleChange}
-                error={errors.originalCertificate}
-              />
-
+            {/* Section Header */}
+            <Box sx={{ mb: 4, display: "flex", alignItems: "center", gap: 2 }}>
               <Box
                 sx={{
-                  width: "100%",
+                  width: 48,
+                  height: 48,
+                  borderRadius: 2,
+                  bgcolor: "primary.50",
                   display: "flex",
-                  justifyContent: "flex-end",
-                  gap: 2,
-                  mt: 3,
+                  alignItems: "center",
+                  justifyContent: "center",
                 }}
               >
-                <CustomButton
-                  label="Cancel"
-                  color="error"
-                  variant="outlined"
-                  onClick={() => navigate("/staff/list")}
-                />
-                <CustomButton type="submit" label="Submit" />
+                <PersonIcon sx={{ color: "primary.main", fontSize: 24 }} />
               </Box>
+              <Box>
+                <Typography variant="h6" fontWeight={700}>
+                  Staff Information
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Fill all fields to complete staff registration
+                </Typography>
+              </Box>
+            </Box>
+
+            {/* PERFECT 3-COLUMN LAYOUT - FULL WIDTH EVENLY */}
+            <Grid 
+              container 
+              spacing={3} 
+              sx={{ 
+                width: '100%',
+                mb: 6 
+              }}
+            >
+              {/* COLUMN 1 - 33.33% WIDTH */}
+              <Grid item xs={12} md={4} sx={{ width: '100%' }}>
+                <Stack spacing={3}>
+                  <CustomInput
+                    sx={inputStyle}
+                    fullWidth
+                    label="Full Name *"
+                    name="staffName"
+                    value={formData.staffName}
+                    onChange={handleChange}
+                    error={errors.staffName}
+                    required
+                  />
+                  <CustomInput
+                    sx={inputStyle}
+                    fullWidth
+                    label="Phone Number *"
+                    name="phoneNumber"
+                    value={formData.phoneNumber}
+                    onChange={handleChange}
+                    error={errors.phoneNumber}
+                    required
+                  />
+                  <CustomInput
+                    sx={inputStyle}
+                    fullWidth
+                    label="Aadhar Card *"
+                    name="aadharCard"
+                    value={formData.aadharCard}
+                    onChange={handleChange}
+                    error={errors.aadharCard}
+                    required
+                  />
+                  <CustomInput
+                    sx={inputStyle}
+                    fullWidth
+                    label="City *"
+                    name="cityName"
+                    value={formData.cityName}
+                    onChange={handleChange}
+                    error={errors.cityName}
+                    required
+                  />
+                </Stack>
+              </Grid>
+
+              {/* COLUMN 2 - 33.33% WIDTH */}
+              <Grid item xs={12} md={4} sx={{ width: '100%' }}>
+                <Stack spacing={3}>
+                  <CustomInput
+                    sx={inputStyle}
+                    fullWidth
+                    label="Email Address *"
+                    name="emailId"
+                    type="email"
+                    value={formData.emailId}
+                    onChange={handleChange}
+                    error={errors.emailId}
+                    required
+                  />
+                  <CustomInput
+                    sx={inputStyle}
+                    fullWidth
+                    label="PAN Card *"
+                    name="panCard"
+                    value={formData.panCard}
+                    onChange={handleChange}
+                    error={errors.panCard}
+                    required
+                  />
+                  <CustomInput
+                    sx={inputStyle}
+                    select
+                    fullWidth
+                    label="Role *"
+                    name="roleName"
+                    value={formData.roleName}
+                    onChange={handleChange}
+                    error={errors.roleName}
+                    required
+                    SelectProps={selectProps}
+                  >
+                    {roles.map((role) => (
+                      <MenuItem key={role.id} value={role.name}>
+                        {role.name}
+                      </MenuItem>
+                    ))}
+                  </CustomInput>
+                  <CustomInput
+                    sx={inputStyle}
+                    fullWidth
+                    label="Highest Degree *"
+                    name="degree"
+                    value={formData.degree}
+                    onChange={handleChange}
+                    error={errors.degree}
+                    required
+                  />
+                </Stack>
+              </Grid>
+
+              {/* COLUMN 3 - 33.33% WIDTH */}
+              <Grid item xs={12} md={4} sx={{ width: '100%' }}>
+                <Stack spacing={3}>
+                  <CustomInput
+                    sx={inputStyle}
+                    select
+                    fullWidth
+                    label="Skills *"
+                    name="skills"
+                    value={formData.skills}
+                    onChange={handleChange}
+                    error={errors.skills}
+                    required
+                    SelectProps={selectProps}
+                  >
+                    {skills.map((skill) => (
+                      <MenuItem key={skill.id} value={skill.name}>
+                        {skill.name}
+                      </MenuItem>
+                    ))}
+                  </CustomInput>
+                  <CustomInput
+                    sx={inputStyle}
+                    fullWidth
+                    type="date"
+                    label="Joining Date *"
+                    name="joiningDate"
+                    value={formData.joiningDate}
+                    onChange={handleChange}
+                    error={errors.joiningDate}
+                    required
+                    InputLabelProps={{ shrink: true }}
+                  />
+                  <CustomInput
+                    sx={inputStyle}
+                    fullWidth
+                    label="Monthly Salary *"
+                    name="salary"
+                    type="number"
+                    value={formData.salary}
+                    onChange={handleChange}
+                    error={errors.salary}
+                    required
+                    InputProps={{
+                      startAdornment: "₹"
+                    }}
+                  />
+                  <CustomInput
+                    sx={inputStyle}
+                    fullWidth
+                    label="Original Certificate *"
+                    name="originalCertificate"
+                    value={formData.originalCertificate}
+                    onChange={handleChange}
+                    error={errors.originalCertificate}
+                    required
+                    multiline
+                    rows={3}
+                  />
+                </Stack>
+              </Grid>
+            </Grid>
+
+            {/* Action Buttons - SAME AS STUDENT FORM */}
+            <Box sx={{ mt: 4 }}>
+              <Grid container>
+                <Grid item xs={12} md={4}>
+                  <Box
+                    sx={{
+                      height: '100%',
+                      width: '100%',
+                      display: "flex",
+                      flexDirection: "row-reverse",
+                      gap: 2,
+                      justifyContent: "right",
+                    }}
+                  >
+                    <CustomButton
+                      type="submit"
+                      label="Add Staff Member"
+                      sx={{
+                        borderRadius: 2,
+                        py: 1.5,
+                        boxShadow: "0 8px 24px rgba(25,118,210,0.35)",
+                        fontWeight: 700,
+                        "&:hover": {
+                          boxShadow: "0 12px 32px rgba(25,118,210,0.45)",
+                        },
+                      }}
+                    />
+                    <CustomButton
+                      variant="outlined"
+                      color="error"
+                      label="Cancel"
+                      onClick={() => navigate("/staff/list")}
+                      sx={{
+                        borderRadius: 2,
+                        py: 1.5,
+                        borderWidth: 2,
+                        fontWeight: 600,
+                        "&:hover": {
+                          borderWidth: 2,
+                        },
+                      }}
+                    />
+                  </Box>
+                </Grid>
+              </Grid>
             </Box>
           </form>
         </CardContent>

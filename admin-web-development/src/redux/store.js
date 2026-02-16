@@ -13,8 +13,10 @@ const store = configureStore({
     students: studentReducer,
     staff: staffReducer,
     leads: leadsReducer,
-    course: courseReducer,
+    courses: courseReducer,
     transactions : transactionReducer,
+    selectedStudent: null,
+
   },
 });
 

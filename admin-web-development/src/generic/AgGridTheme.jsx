@@ -14,7 +14,7 @@ export const myTheme = themeQuartz.withParams({
   headerRowBorder: true,
   headerTextColor: "#020000",
   headerVerticalPaddingScale: 1,
-  oddRowBackgroundColor: "#F9FAFB",
+  // oddRowBackgroundColor: "#F9FAFB",
   rowBorder: true,
   sidePanelBorder: false,
   spacing: 10,

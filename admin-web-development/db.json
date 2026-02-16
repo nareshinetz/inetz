@@ -90,7 +90,6 @@
       "id": "1"
     },
     {
-      "id": "2",
       "studentName": "Jazz Akka",
       "emailId": "jazz@gmail.com",
       "phoneNumber": "9876543211",
@@ -103,7 +102,9 @@
       "yearOfStudy": "1st Year",
       "discount": 0,
       "status": "Completed",
-      "joiningDate": "2026-01-15"
+      "joiningDate": "2026-01-15",
+      "courseName": "MERN Stack",
+      "id": "2"
     },
     {
       "id": "3",
@@ -431,36 +432,6 @@
   ],
   "payments": [
     {
-      "id": "e724",
-      "studentId": "1",
-      "amount": 1000,
-      "paymentMethod": "Cash",
-      "totalFee": 50000,
-      "paymentMode": "Cash",
-      "transactionId": null,
-      "date": "05/02/2026"
-    },
-    {
-      "id": "e725",
-      "studentId": "2",
-      "amount": 5000,
-      "paymentMethod": "Online",
-      "totalFee": 60000,
-      "paymentMode": "GPay",
-      "transactionId": "GPAY12345",
-      "date": "06/02/2026"
-    },
-    {
-      "id": "e726",
-      "studentId": "3",
-      "amount": 3000,
-      "paymentMethod": "Online",
-      "totalFee": 45000,
-      "paymentMode": "PhonePe",
-      "transactionId": "PP98765",
-      "date": "07/02/2026"
-    },
-    {
       "id": "e727",
       "studentId": "4",
       "amount": 10000,
@@ -531,32 +502,6 @@
       "date": "11/02/2026"
     },
     {
-      "id": "a7df",
-      "studentId": "1",
-      "amount": 10000,
-      "paymentMethod": "GPay",
-      "transactionId": "iougyufiu",
-      "date": "08/02/2026"
-    },
-    {
-      "id": "ea73",
-      "studentId": "1",
-      "amount": 10000,
-      "paymentMethod": "GPay",
-      "transactionId": "ugyutfiuo",
-      "date": "08/02/2026"
-    },
-    {
-      "id": "d2fb",
-      "studentId": "1",
-      "amount": 10000,
-      "paymentMethod": "GPay",
-      "transactionId": "wgqiudgiqggqgg",
-      "totalFee": 65000,
-      "pendingAmount": 43000,
-      "date": "08/02/2026"
-    },
-    {
       "id": "8f05",
       "studentId": "1",
       "amount": 10000,
@@ -565,6 +510,36 @@
       "totalFee": 65000,
       "pendingAmount": 33000,
       "date": "08/02/2026"
+    },
+    {
+      "id": "366a",
+      "studentId": "1",
+      "amount": 240000,
+      "paymentMethod": "GPay",
+      "transactionId": "settreqgew",
+      "totalFee": 65000,
+      "pendingAmount": 23000,
+      "date": "09/02/2026"
+    },
+    {
+      "id": "8d79",
+      "studentId": "2",
+      "amount": 8000,
+      "paymentMethod": "Cash",
+      "transactionId": null,
+      "totalFee": 12000,
+      "pendingAmount": 7000,
+      "date": "09/02/2026"
+    },
+    {
+      "id": "c347",
+      "studentId": "2",
+      "amount": 1000,
+      "paymentMethod": "GPay",
+      "transactionId": "poyfyugui",
+      "totalFee": 12000,
+      "pendingAmount": 4000,
+      "date": "09/02/2026"
     }
   ],
   "leads": [
@@ -585,3 +560,4 @@
     }
   ]
 }
+

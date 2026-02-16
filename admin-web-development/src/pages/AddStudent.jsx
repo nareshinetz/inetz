@@ -21,7 +21,12 @@ import { useSelector, useDispatch } from "react-redux";
 import { addStudent } from "../redux/slices/studentSlice";
 import Status from "../generic/StatusModel";
 import { useParams } from "react-router-dom";
-import { fetchStudentById, updateStudent } from "../redux/slices/studentSlice";
+import {
+  fetchStudentById,
+  fetchStudents,
+  updateStudent,
+} from "../redux/slices/studentSlice";
+
 
 
 const inputStyle = {
@@ -88,49 +93,58 @@ const AddStudent = () => {
   const { id } = useParams();
   const isEditMode = Boolean(id);
 
-  const { students, loading, error } = useSelector(
-  (state) => state.students
-);
-
-const [statusModal, setStatusModal] = useState({
-  open: false,
-  type: "success",
-  title: "",
-  message: "",
-});
+ const {
+  students,
+  selectedStudent,
+  loading,
+  error,
+  totalPages,
+} = useSelector((state) => state.students);
 
 
+  const [statusModal, setStatusModal] = useState({
+    open: false,
+    type: "success",
+    title: "",
+    message: "",
+  });
 
-const [formData, setFormData] = useState({
-  studentName: "",
-  emailId: "",
-  phoneNumber: "",
-  programType: "",
-  modeOfTraining: "",
-  courseName: "",
-  trainerName: "",
-  collegeName: "",
-  degree: "",
-  department: "",
-  cityName: "",
-  yearOfStudy: "",
-  sslcMark: "",
-  hscMark: "",
-  ugMark: "",
-  pgMark: "",
-  status: "",
-  comments: "",
-});
 
+
+  const [formData, setFormData] = useState({
+    studentName: "",
+    emailId: "",
+    phoneNumber: "",
+    programType: "",
+    modeOfTraining: "",
+    courseName: "",
+    collegeName: "",
+    courseNumber: "",
+    degree: "",
+    department: "",
+    cityName: "",
+    yearOfStudy: "",
+    sslcMark: "",
+    hscMark: "",
+    ugMark: "",
+    pgMark: "",
+    status: "",
+    comments: "",
+  });
 
 useEffect(() => {
-  if (isEditMode && students.length > 0) {
-    const student = students.find((s) => String(s.id) === String(id));
-    if (student) {
-      setFormData(student);
-    }
+  if (isEditMode) {
+    dispatch(fetchStudentById(id))
+      .unwrap()
+      .then((student) => {
+        setFormData(student);
+      })
+      .catch((err) => {
+        console.error("Failed to fetch student:", err);
+      });
   }
-}, [isEditMode, id, students]);
+}, [dispatch, id, isEditMode]);
+
 
 
   const [errors, setErrors] = useState({});
@@ -151,46 +165,50 @@ useEffect(() => {
     "Embedded",
     "IoT",
   ];
-  const courseFeeMap = {
-    "Java Full Stack": 60000,
-    "MERN Stack": 65000,
-    "Python Full Stack": 55000,
-    "Data Science": 80000,
-    "Data Analytics": 70000,
-    "Embedded": 50000,
-    "IoT": 45000,
+
+  const courseCodeMap = {
+    "Java Full Stack": "C001",
+    "MERN Stack": "C002",
+    "Python Full Stack": "C003",
+    "Data Science": "C004",
+    "Data Analytics": "C005",
+    "Embedded": "C006",
+    "IoT": "C007",
   };
-  const batchOptions = ["Batch 1", "Batch 2", "Batch 3"];
-  const trainerOptions = ["John", "Vijay", "Priya"];
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
+ const numberFields = ["sslcMark", "hscMark", "ugMark", "pgMark"];
 
-    setFormData((prev) => {
-      let updated = { ...prev, [name]: value };
+const handleChange = (e) => {
+  const { name, value } = e.target;
 
-      // Auto set total fee when course changes
-      // if (name === "courseName") {
-      //   const fee = courseFeeMap[value] || 0;
-      //   updated.totalFee = fee;
-      //   updated.paidAmount = "";
-      //   updated.pendingFee = fee;
-      // }
+  setFormData((prev) => {
+    let updatedValue = value;
 
-      // Paid amount change
-      // if (name === "paidAmount") {
-      //   const total = Number(prev.totalFee || 0);
-      //   const paid = Number(value || 0);
-      //   updated.pendingFee = total - paid;
-      // }
 
-      return updated;
-    });
-
-    if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: false }));
+    // ✅ convert numeric fields
+    if (numberFields.includes(name)) {
+      updatedValue = value === "" ? null : Number(value);
     }
-  };
+
+    const updated = {
+      ...prev,
+      [name]: updatedValue,
+    };
+
+    // ✅ auto-set course number
+    if (name === "courseName") {
+      updated.courseNumber = courseCodeMap[value] || "";
+    }
+
+    return updated;
+  });
+
+  // optional: clear field error
+  if (errors?.[name]) {
+    setErrors((prev) => ({ ...prev, [name]: false }));
+  }
+};
+
 
   const requiredFields = [
     "studentName",
@@ -215,40 +233,44 @@ useEffect(() => {
     return Object.keys(newErrors).length === 0;
   };
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
+  
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  if (!validateForm()) return;
+    if (!validateForm()) return;
 
-  try {
-    let resultStudent;
+    try {
+      let resultStudent;
 
-    if (isEditMode) {
-      resultStudent = await dispatch(
-        updateStudent({ id, ...formData })
-      ).unwrap();
-    } else {
-      resultStudent = await dispatch(addStudent(formData)).unwrap();
+      if (isEditMode) {
+  const { id: _, ...payload } = formData;
+
+  resultStudent = await dispatch(
+    updateStudent({ id :students.id, ...payload })
+  ).unwrap();
+}
+else {
+        resultStudent = await dispatch(addStudent(formData)).unwrap();
+      }
+
+      setStatusModal({
+        open: true,
+        type: "success",
+        title: isEditMode
+          ? "Student Updated Successfully"
+          : "Student Added Successfully",
+        message: "Student information has been saved successfully.",
+        studentId: resultStudent.id, // ✅ store ID here
+      });
+    } catch (err) {
+      setStatusModal({
+        open: true,
+        type: "error",
+        title: "Submission Failed",
+        message: "Failed to save student. Please try again.",
+      });
     }
-
-    setStatusModal({
-      open: true,
-      type: "success",
-      title: isEditMode
-        ? "Student Updated Successfully"
-        : "Student Added Successfully",
-      message: "Student information has been saved successfully.",
-      studentId: resultStudent.id, // ✅ store ID here
-    });
-  } catch (err) {
-    setStatusModal({
-      open: true,
-      type: "error",
-      title: "Submission Failed",
-      message: "Failed to save student. Please try again.",
-    });
-  }
-};
+  };
 
   if (loading && !students.length)
     return (
@@ -257,14 +279,19 @@ const handleSubmit = async (e) => {
       </Box>
     );
 
-  if (error)
-    return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="300px">
-        <Alert severity="error" sx={{ width: "100%", maxWidth: 400 }}>
-          Failed to add student: {error}
-        </Alert>
-      </Box>
-    );
+ if (error)
+  return (
+    <Alert severity="error">
+      Failed to add student: {
+        typeof error === "string"
+          ? error
+          : error?.message ||
+            error?.error ||
+            "Internal Server Error"
+      }
+    </Alert>
+  );
+
 
   return (
     <Box>
@@ -280,7 +307,7 @@ const handleSubmit = async (e) => {
             WebkitTextFillColor: "transparent",
           }}
         >
-           {isEditMode ? "Edit Student" : "Add New Student"}
+          {isEditMode ? "Edit Student" : "Add New Student"}
         </Typography>
       </Box>
 
@@ -326,7 +353,7 @@ const handleSubmit = async (e) => {
               <Grid item xs={12} md={4} sx={{ width: '30%' }}>
                 <Stack spacing={3}>
                   <TextField
-                    label="Student Name *"
+                    label="Student Name "
                     name="studentName"
                     fullWidth
                     required
@@ -403,7 +430,7 @@ const handleSubmit = async (e) => {
               <Grid item xs={12} md={4} sx={{ width: '30%' }}>
                 <Stack spacing={3}>
                   <TextField
-                    label="Email ID *"
+                    label="Email ID "
                     name="emailId"
                     type="email"
                     fullWidth
@@ -475,7 +502,7 @@ const handleSubmit = async (e) => {
                     onChange={handleChange}
                     error={errors.comments}
                     placeholder="Enter any additional notes or comments about the student..."
-                    sx={{ width: 790 }}
+                    sx={{ width: 690 }}
                   />
 
                 </Stack>
@@ -486,7 +513,7 @@ const handleSubmit = async (e) => {
                 <Stack spacing={3}>
 
                   <TextField
-                    label="Phone Number *"
+                    label="Phone Number"
                     name="phoneNumber"
                     fullWidth
                     required
@@ -500,7 +527,7 @@ const handleSubmit = async (e) => {
                     label="Course Name"
                     name="courseName"
                     fullWidth
-                    value={formData.courseName}
+                    value={formData.courseName || ""}
                     onChange={handleChange}
                     error={errors.courseName}
                     SelectProps={selectProps}
@@ -568,7 +595,7 @@ const handleSubmit = async (e) => {
                   <Box
                     sx={{
                       height: '100%',
-                      width: 1180,
+                      width: 1050,
                       display: "flex",
                       flexDirection: "row-reverse",
                       gap: 2,
@@ -617,24 +644,24 @@ const handleSubmit = async (e) => {
       </Card>
 
       <Status
-  open={statusModal.open}
-  type={statusModal.type}
-  title={statusModal.title}
-  message={statusModal.message}
-  onClose={() => {
-    const studentId = statusModal.studentId;
+        open={statusModal.open}
+        type={statusModal.type}
+        title={statusModal.title}
+        message={statusModal.message}
+        onClose={() => {
+          const studentId = statusModal.studentId;
 
-    setStatusModal({ ...statusModal, open: false });
+          setStatusModal({ ...statusModal, open: false });
 
-    if (statusModal.type === "success" && studentId) {
-      navigate("/addpayment", {
-        state: {
-          studentId: studentId, // ✅ dynamic ID
-        },
-      });
-    }
-  }}
-/>
+          if (statusModal.type === "success" && studentId) {
+            navigate("/addpayment", {
+              state: {
+                studentId: studentId, // ✅ dynamic ID
+              },
+            });
+          }
+        }}
+      />
 
 
     </Box>
@@ -642,614 +669,3 @@ const handleSubmit = async (e) => {
 };
 
 export default AddStudent;
-
-
-// import React, { useEffect, useState, useMemo, useCallback } from "react";
-// import {
-//   Box,
-//   Card,
-//   CardContent,
-//   Alert,
-//   MenuItem,
-//   CircularProgress,
-//   Typography,
-//   TextField,
-//   Grid,
-//   Button,
-//   Stack,
-// } from "@mui/material";
-// import { Person as PersonIcon } from "@mui/icons-material";
-// import { useNavigate, useParams } from "react-router-dom";
-// import { useSelector, useDispatch } from "react-redux";
-// import { addStudent, fetchStudentById, updateStudent } from "../redux/slices/studentSlice";
-// import Status from "../generic/StatusModel";
-
-// // ========== CONSTANTS ==========
-// const PROGRAM_OPTIONS = ["Internship", "Course"];
-// const MODE_OPTIONS = ["Online", "Offline"];
-// const YEAR_OPTIONS = ["1st Yr", "2nd Yr", "3rd Yr", "Final Yr", "Passed Out"];
-// const STATUS_OPTIONS = ["Active", "Completed", "Dropped"];
-// const COURSE_OPTIONS = [
-//   "Java Full Stack",
-//   "MERN Stack",
-//   "Python Full Stack",
-//   "Data Science",
-//   "Data Analytics",
-//   "Embedded",
-//   "IoT",
-// ];
-
-// const REQUIRED_FIELDS = [
-//   "studentName",
-//   "emailId",
-//   "phoneNumber",
-//   "programType",
-//   "modeOfTraining",
-//   "courseName",
-//   "status",
-// ];
-
-// // ========== STYLES ==========
-// const inputStyle = {
-//   "& .MuiOutlinedInput-root": {
-//     borderRadius: 2,
-//     bgcolor: "white",
-//     minHeight: 56,
-//     "& fieldset": {
-//       borderColor: "grey.300",
-//       borderWidth: 1.5,
-//     },
-//     "&:hover fieldset": {
-//       borderColor: "primary.main",
-//     },
-//     "&.Mui-focused fieldset": {
-//       borderWidth: 2,
-//     },
-//   },
-//   "& .MuiInputLabel-root": {
-//     fontWeight: 500,
-//     fontSize: "0.95rem",
-//   },
-//   "& .MuiInputBase-input": {
-//     fontSize: "0.95rem",
-//     padding: "16.5px 14px",
-//   },
-//   "& .MuiSelect-select": {
-//     paddingTop: "16.5px",
-//     paddingBottom: "16.5px",
-//   },
-// };
-
-// const selectProps = {
-//   MenuProps: {
-//     PaperProps: {
-//       sx: {
-//         maxHeight: 300,
-//         mt: 1,
-//         boxShadow: "0 8px 32px rgba(0,0,0,0.12)",
-//         borderRadius: 2,
-//         "& .MuiMenuItem-root": {
-//           fontSize: "0.95rem",
-//           py: 1.5,
-//           px: 2,
-//           "&:hover": {
-//             bgcolor: "primary.50",
-//           },
-//           "&.Mui-selected": {
-//             bgcolor: "primary.100",
-//             fontWeight: 600,
-//             "&:hover": {
-//               bgcolor: "primary.200",
-//             },
-//           },
-//         },
-//       },
-//     },
-//   },
-// };
-
-// // ========== HELPER FUNCTIONS ==========
-// const getInitialFormData = () => ({
-//   studentName: "",
-//   emailId: "",
-//   phoneNumber: "",
-//   programType: "",
-//   modeOfTraining: "",
-//   courseName: "",
-//   trainerName: "",
-//   collegeName: "",
-//   degree: "",
-//   department: "",
-//   cityName: "",
-//   yearOfStudy: "",
-//   sslcMark: "",
-//   hscMark: "",
-//   ugMark: "",
-//   pgMark: "",
-//   status: "",
-//   comments: "",
-// });
-
-// // ========== CUSTOM COMPONENTS ==========
-// const FormTextField = React.memo(({ error, ...props }) => (
-//   <TextField {...props} error={error} sx={inputStyle} />
-// ));
-
-// const FormSelectField = React.memo(({ options, error, ...props }) => (
-//   <TextField select {...props} error={error} SelectProps={selectProps} sx={inputStyle}>
-//     {options.map((opt) => (
-//       <MenuItem key={opt} value={opt}>
-//         {opt}
-//       </MenuItem>
-//     ))}
-//   </TextField>
-// ));
-
-// // ========== MAIN COMPONENT ==========
-// const AddStudent = () => {
-//   const navigate = useNavigate();
-//   const dispatch = useDispatch();
-//   const { id } = useParams();
-//   const isEditMode = Boolean(id);
-
-//   // Redux state
-//   const { students, loading, error } = useSelector((state) => state.students);
-
-//   // Local state
-//   const [formData, setFormData] = useState(getInitialFormData);
-//   const [errors, setErrors] = useState({});
-//   const [statusModal, setStatusModal] = useState({
-//     open: false,
-//     type: "success",
-//     title: "",
-//     message: "",
-//   });
-
-//   // ========== EFFECTS ==========
-//   // Load student data in edit mode
-//   useEffect(() => {
-//     if (isEditMode && students.length > 0) {
-//       const student = students.find((s) => String(s.id) === String(id));
-//       if (student) {
-//         setFormData(student);
-//       }
-//     }
-//   }, [isEditMode, id, students]);
-
-//   // ========== HANDLERS ==========
-//   const handleChange = useCallback((e) => {
-//     const { name, value } = e.target;
-
-//     setFormData((prev) => ({ ...prev, [name]: value }));
-
-//     // Clear error for this field
-//     setErrors((prev) => {
-//       if (prev[name]) {
-//         const newErrors = { ...prev };
-//         delete newErrors[name];
-//         return newErrors;
-//       }
-//       return prev;
-//     });
-//   }, []);
-
-//   const validateForm = useCallback(() => {
-//     const newErrors = {};
-
-//     REQUIRED_FIELDS.forEach((field) => {
-//       if (!formData[field]?.toString().trim()) {
-//         newErrors[field] = true;
-//       }
-//     });
-
-//     // Additional email validation
-//     if (formData.emailId && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.emailId)) {
-//       newErrors.emailId = true;
-//     }
-
-//     // Phone number validation (basic)
-//     if (formData.phoneNumber && !/^\d{10}$/.test(formData.phoneNumber.replace(/\D/g, ""))) {
-//       newErrors.phoneNumber = true;
-//     }
-
-//     setErrors(newErrors);
-//     return Object.keys(newErrors).length === 0;
-//   }, [formData]);
-
-//   const handleSubmit = useCallback(
-//     async (e) => {
-//       e.preventDefault();
-
-//       if (!validateForm()) {
-//         return;
-//       }
-
-//       try {
-//         let resultStudent;
-
-//         if (isEditMode) {
-//           resultStudent = await dispatch(updateStudent({ id, ...formData })).unwrap();
-//         } else {
-//           resultStudent = await dispatch(addStudent(formData)).unwrap();
-//         }
-
-//         setStatusModal({
-//           open: true,
-//           type: "success",
-//           title: isEditMode ? "Student Updated Successfully" : "Student Added Successfully",
-//           message: "Student information has been saved successfully.",
-//           studentId: resultStudent.id,
-//         });
-//       } catch (err) {
-//         setStatusModal({
-//           open: true,
-//           type: "error",
-//           title: "Submission Failed",
-//           message: err.message || "Failed to save student. Please try again.",
-//         });
-//       }
-//     },
-//     [validateForm, isEditMode, dispatch, id, formData]
-//   );
-
-//   const handleCancel = useCallback(() => {
-//     navigate("/students/addpayment");
-//   }, [navigate]);
-
-//   const handleStatusClose = useCallback(() => {
-//     const studentId = statusModal.studentId;
-//     setStatusModal((prev) => ({ ...prev, open: false }));
-
-//     if (statusModal.type === "success" && studentId) {
-//       navigate("/addpayment", {
-//         state: { studentId },
-//       });
-//     }
-//   }, [statusModal.studentId, statusModal.type, navigate]);
-
-//   // ========== LOADING & ERROR STATES ==========
-//   if (loading && !students.length) {
-//     return (
-//       <Box display="flex" justifyContent="center" alignItems="center" minHeight="300px">
-//         <CircularProgress />
-//       </Box>
-//     );
-//   }
-
-//   if (error) {
-//     return (
-//       <Box display="flex" justifyContent="center" alignItems="center" minHeight="300px">
-//         <Alert severity="error" sx={{ width: "100%", maxWidth: 400 }}>
-//           Failed to load student: {error}
-//         </Alert>
-//       </Box>
-//     );
-//   }
-
-//   // ========== RENDER ==========
-//   return (
-//     <Box sx={{ width: '100%' }}>
-//       {/* Page Header */}
-//       <Box sx={{ mb: 4 }}>
-//         <Typography
-//           variant="h5"
-//           fontWeight={700}
-//           sx={{
-//             mb: 1,
-//             background: "linear-gradient(135deg, #1a1a1a 0%, #4a4a4a 100%)",
-//             WebkitBackgroundClip: "text",
-//             WebkitTextFillColor: "transparent",
-//           }}
-//         >
-//           {isEditMode ? "Edit Student" : "Add New Student"}
-//         </Typography>
-//       </Box>
-
-//       <Card
-//         elevation={0}
-//         sx={{
-//           borderRadius: 3,
-//           border: "1px solid",
-//           borderColor: "divider",
-//           overflow: "hidden",
-//           width: '100%',
-//         }}
-//       >
-//         <CardContent sx={{ p: { xs: 3, sm: 4, md: 5 }, width: '100%' }}>
-//           <form onSubmit={handleSubmit} style={{ width: '100%' }}>
-//             {/* Section Header */}
-//             <Box sx={{ mb: 4, display: "flex", alignItems: "center", gap: 2 }}>
-//               <Box
-//                 sx={{
-//                   width: 48,
-//                   height: 48,
-//                   borderRadius: 2,
-//                   bgcolor: "primary.50",
-//                   display: "flex",
-//                   alignItems: "center",
-//                   justifyContent: "center",
-//                 }}
-//               >
-//                 <PersonIcon sx={{ color: "primary.main", fontSize: 24 }} />
-//               </Box>
-//               <Box>
-//                 <Typography variant="h6" fontWeight={700}>
-//                   Student Information
-//                 </Typography>
-//                 <Typography variant="body2" color="text.secondary">
-//                   Fill all required fields to complete enrollment
-//                 </Typography>
-//               </Box>
-//             </Box>
-
-//             {/* Form Grid - Full Width Layout */}
-//             <Grid container spacing={3} sx={{ width: '100%', m: 0 }}>
-//               {/* Row 1: Student Name, Email ID, Phone Number */}
-//               <Grid item xs={12} md={4} sx={{ pl: 0 }}>
-//                 <FormTextField
-//                   label="Student Name * *"
-//                   name="studentName"
-//                   fullWidth
-//                   required
-//                   value={formData.studentName}
-//                   onChange={handleChange}
-//                   error={errors.studentName}
-//                 />
-//               </Grid>
-//               <Grid item xs={12} md={4}>
-//                 <FormTextField
-//                   label="Email ID * *"
-//                   name="emailId"
-//                   type="email"
-//                   fullWidth
-//                   required
-//                   value={formData.emailId}
-//                   onChange={handleChange}
-//                   error={errors.emailId}
-//                   helperText={errors.emailId && "Please enter a valid email"}
-//                 />
-//               </Grid>
-//               <Grid item xs={12} md={4}>
-//                 <FormTextField
-//                   label="Phone Number * *"
-//                   name="phoneNumber"
-//                   fullWidth
-//                   required
-//                   value={formData.phoneNumber}
-//                   onChange={handleChange}
-//                   error={errors.phoneNumber}
-//                   helperText={errors.phoneNumber && "Please enter a valid 10-digit phone number"}
-//                 />
-//               </Grid>
-
-//               {/* Row 2: Program Type, Mode of Training, Course Name */}
-//               <Grid item xs={12} md={4} sx={{ pl: 0 }}>
-//                 <FormSelectField
-//                   label="Program Type"
-//                   name="programType"
-//                   fullWidth
-//                   required
-//                   value={formData.programType}
-//                   onChange={handleChange}
-//                   error={errors.programType}
-//                   options={PROGRAM_OPTIONS}
-//                 />
-//               </Grid>
-//               <Grid item xs={12} md={4}>
-//                 <FormSelectField
-//                   label="Mode of Training"
-//                   name="modeOfTraining"
-//                   fullWidth
-//                   required
-//                   value={formData.modeOfTraining}
-//                   onChange={handleChange}
-//                   error={errors.modeOfTraining}
-//                   options={MODE_OPTIONS}
-//                 />
-//               </Grid>
-//               <Grid item xs={12} md={4}>
-//                 <FormSelectField
-//                   label="Course Name"
-//                   name="courseName"
-//                   fullWidth
-//                   required
-//                   value={formData.courseName}
-//                   onChange={handleChange}
-//                   error={errors.courseName}
-//                   options={COURSE_OPTIONS}
-//                 />
-//               </Grid>
-
-//               {/* Row 3: College Name, Department, Degree */}
-//               <Grid item xs={12} md={4} sx={{ pl: 0 }}>
-//                 <FormTextField
-//                   label="College Name"
-//                   name="collegeName"
-//                   fullWidth
-//                   value={formData.collegeName}
-//                   onChange={handleChange}
-//                   error={errors.collegeName}
-//                 />
-//               </Grid>
-//               <Grid item xs={12} md={4}>
-//                 <FormTextField
-//                   label="Department"
-//                   name="department"
-//                   fullWidth
-//                   value={formData.department}
-//                   onChange={handleChange}
-//                   error={errors.department}
-//                 />
-//               </Grid>
-//               <Grid item xs={12} md={4}>
-//                 <FormTextField
-//                   label="Degree"
-//                   name="degree"
-//                   fullWidth
-//                   value={formData.degree}
-//                   onChange={handleChange}
-//                   error={errors.degree}
-//                 />
-//               </Grid>
-
-//               {/* Row 4: City Name, Year of Study, SSLC Mark */}
-//               <Grid item xs={12} md={4} sx={{ pl: 0 }}>
-//                 <FormTextField
-//                   label="City Name"
-//                   name="cityName"
-//                   fullWidth
-//                   value={formData.cityName}
-//                   onChange={handleChange}
-//                   error={errors.cityName}
-//                 />
-//               </Grid>
-//               <Grid item xs={12} md={4}>
-//                 <FormSelectField
-//                   label="Year of Study"
-//                   name="yearOfStudy"
-//                   fullWidth
-//                   value={formData.yearOfStudy}
-//                   onChange={handleChange}
-//                   error={errors.yearOfStudy}
-//                   options={YEAR_OPTIONS}
-//                 />
-//               </Grid>
-//               <Grid item xs={12} md={4}>
-//                 <FormTextField
-//                   type="number"
-//                   label="SSLC Mark (%)"
-//                   name="sslcMark"
-//                   fullWidth
-//                   value={formData.sslcMark}
-//                   onChange={handleChange}
-//                   error={errors.sslcMark}
-//                   inputProps={{ min: 0, max: 100, step: 0.01 }}
-//                 />
-//               </Grid>
-
-//               {/* Row 5: HSC Mark, UG Mark, PG Mark */}
-//               <Grid item xs={12} md={4} sx={{ pl: 0 }}>
-//                 <FormTextField
-//                   type="number"
-//                   label="HSC Mark (%)"
-//                   name="hscMark"
-//                   fullWidth
-//                   value={formData.hscMark}
-//                   onChange={handleChange}
-//                   error={errors.hscMark}
-//                   inputProps={{ min: 0, max: 100, step: 0.01 }}
-//                 />
-//               </Grid>
-//               <Grid item xs={12} md={4}>
-//                 <FormTextField
-//                   type="number"
-//                   label="UG Mark (CGPA)"
-//                   name="ugMark"
-//                   fullWidth
-//                   value={formData.ugMark}
-//                   onChange={handleChange}
-//                   error={errors.ugMark}
-//                   inputProps={{ min: 0, max: 10, step: 0.01 }}
-//                 />
-//               </Grid>
-//               <Grid item xs={12} md={4}>
-//                 <FormTextField
-//                   type="number"
-//                   label="PG Mark (CGPA)"
-//                   name="pgMark"
-//                   fullWidth
-//                   value={formData.pgMark}
-//                   onChange={handleChange}
-//                   error={errors.pgMark}
-//                   inputProps={{ min: 0, max: 10, step: 0.01 }}
-//                 />
-//               </Grid>
-
-//               {/* Row 6: Status, Additional Comments (spans 2 columns) */}
-//               <Grid item xs={12} md={4} sx={{ pl: 0 }}>
-//                 <FormSelectField
-//                   label="Status"
-//                   name="status"
-//                   fullWidth
-//                   required
-//                   value={formData.status}
-//                   onChange={handleChange}
-//                   error={errors.status}
-//                   options={STATUS_OPTIONS}
-//                 />
-//               </Grid>
-//               <Grid item xs={12} md={8}>
-//                 <FormTextField
-//                   label="Additional Comments"
-//                   name="comments"
-//                   fullWidth
-//                   multiline
-//                   rows={1}
-//                   value={formData.comments}
-//                   onChange={handleChange}
-//                   placeholder="Enter any additional notes..."
-//                 />
-//               </Grid>
-//             </Grid>
-
-//             {/* Action Buttons */}
-//             <Box sx={{ mt: 4, display: "flex", justifyContent: "flex-end", gap: 2 }}>
-//               <Button
-//                 variant="outlined"
-//                 size="large"
-//                 color="error"
-//                 onClick={handleCancel}
-//                 sx={{
-//                   borderRadius: 2,
-//                   py: 1.5,
-//                   px: 4,
-//                   borderWidth: 2,
-//                   fontWeight: 600,
-//                   "&:hover": {
-//                     borderWidth: 2,
-//                   },
-//                 }}
-//               >
-//                 Cancel
-//               </Button>
-//               <Button
-//                 type="submit"
-//                 variant="contained"
-//                 size="large"
-//                 disabled={loading}
-//                 sx={{
-//                   borderRadius: 2,
-//                   py: 1.5,
-//                   px: 4,
-//                   boxShadow: "0 8px 24px rgba(25,118,210,0.35)",
-//                   fontWeight: 700,
-//                   "&:hover": {
-//                     boxShadow: "0 12px 32px rgba(25,118,210,0.45)",
-//                   },
-//                 }}
-//               >
-//                 {loading ? (
-//                   <CircularProgress size={24} color="inherit" />
-//                 ) : isEditMode ? (
-//                   "Update Student"
-//                 ) : (
-//                   "Submit"
-//                 )}
-//               </Button>
-//             </Box>
-//           </form>
-//         </CardContent>
-//       </Card>
-
-//       <Status
-//         open={statusModal.open}
-//         type={statusModal.type}
-//         title={statusModal.title}
-//         message={statusModal.message}
-//         onClose={handleStatusClose}
-//       />
-//     </Box>
-//   );
-// };
-
-// export default AddStudent;  

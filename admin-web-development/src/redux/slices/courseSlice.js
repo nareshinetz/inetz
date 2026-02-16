@@ -2,132 +2,158 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
-const API_URL = "http://localhost:8080";
+const API_URL = "http://localhost:8082/course";
 
-// ---------------- THUNKS ----------------
-
-// Fetch all courses
+/* ================= FETCH COURSES ================= */
 export const fetchCourses = createAsyncThunk(
-  "courses/fetchCourses",
+  "courses",
   async (_, { rejectWithValue }) => {
     try {
       const res = await axios.get(`${API_URL}/courses`);
-      return res.data;
+      return res.data; // backend wrapper object
+    } catch (err) {
+      return rejectWithValue(
+        err.response?.data?.message || err.message
+      );
+    }
+  }
+);
+
+// Fetch Single Course
+export const fetchCourseById = createAsyncThunk(
+  "courses/fetchCourseById",
+  async (id, { rejectWithValue }) => {
+    try {
+      const res = await axios.get(`${API_URL}/courses/${id}`);
+      return res.data.data; // assuming backend returns { message, data, success }
     } catch (err) {
       return rejectWithValue(err.message);
     }
   }
 );
 
-// Add new course
+
+/* ================= ADD COURSE ================= */
 export const addCourse = createAsyncThunk(
-  "courses/addCourse",
+  "/courses",
   async (courseData, { rejectWithValue }) => {
     try {
       const res = await axios.post(`${API_URL}/courses`, courseData);
-      return res.data;
+      return res.data; // wrapper object
     } catch (err) {
-      return rejectWithValue(err.message);
+      return rejectWithValue(
+        err.response?.data?.message || err.message
+      );
     }
   }
 );
 
-// Edit existing course
+/* ================= EDIT COURSE ================= */
 export const editCourse = createAsyncThunk(
   "courses/editCourse",
-  async (updatedCourseData, { rejectWithValue, dispatch }) => {
+  async (updatedCourseData, { rejectWithValue }) => {
     try {
-      await axios.put(`${API_URL}/courses/${updatedCourseData.id}`, updatedCourseData);
-
-      // Re-fetch courses list to update UI
-      dispatch(fetchCourses());
+      const res = await axios.put(
+        `${API_URL}/courses/${updatedCourseData.id}`,
+        updatedCourseData
+      );
+      return res.data;
     } catch (err) {
-      return rejectWithValue(err.message);
+      return rejectWithValue(
+        err.response?.data?.message || err.message
+      );
     }
   }
 );
 
-// Delete course
+/* ================= DELETE COURSE ================= */
 export const deleteCourse = createAsyncThunk(
   "courses/deleteCourse",
-  async (id, { rejectWithValue, dispatch }) => {
+  async (id, { rejectWithValue }) => {
     try {
       await axios.delete(`${API_URL}/courses/${id}`);
-
-      // Re-fetch courses list to update UI
-      dispatch(fetchCourses());
+      return id;
     } catch (err) {
-      return rejectWithValue(err.message);
+      return rejectWithValue(
+        err.response?.data?.message || err.message
+      );
     }
   }
 );
 
-// ---------------- SLICE ----------------
+/* ================= SLICE ================= */
 const courseSlice = createSlice({
   name: "courses",
   initialState: {
     courses: [],
+    selectedCourse: null,
     loading: false,
     error: null,
-    success: false,
   },
-  reducers: {
-    // No extra reducers needed as we handle via thunks
-  },
+  reducers: {},
   extraReducers: (builder) => {
     builder
-      // Fetch Courses
+
+      /* ===== FETCH ===== */
       .addCase(fetchCourses.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(fetchCourses.fulfilled, (state, action) => {
         state.loading = false;
-        state.courses = action.payload;
+        state.courses = action.payload.data; // ✅ IMPORTANT FIX
       })
       .addCase(fetchCourses.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
 
-      // Add Course
+      /* ===== ADD ===== */
       .addCase(addCourse.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(addCourse.fulfilled, (state, action) => {
         state.loading = false;
-        state.courses.push(action.payload);
+        state.courses.push(action.payload.data); // ✅ FIX
       })
       .addCase(addCourse.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
 
-      // Edit Course
-      .addCase(editCourse.pending, (state) => {
+      // Fetch Course By ID
+      .addCase(fetchCourseById.pending, (state) => {
         state.loading = true;
-        state.error = null;
       })
-      .addCase(editCourse.fulfilled, (state) => {
+      .addCase(fetchCourseById.fulfilled, (state, action) => {
         state.loading = false;
+        state.selectedCourse = action.payload;
       })
-      .addCase(editCourse.rejected, (state, action) => {
+      .addCase(fetchCourseById.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
 
-      // Delete Course
-      .addCase(deleteCourse.pending, (state) => {
-        state.loading = true;
-        state.error = null;
+
+      /* ===== EDIT ===== */
+      .addCase(editCourse.fulfilled, (state, action) => {
+        const updatedCourse = action.payload.data;
+
+        const index = state.courses.findIndex(
+          (course) => course.id === updatedCourse.id
+        );
+
+        if (index !== -1) {
+          state.courses[index] = updatedCourse;
+        }
       })
-      .addCase(deleteCourse.fulfilled, (state) => {
-        state.loading = false;
-      })
-      .addCase(deleteCourse.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
+
+      /* ===== DELETE ===== */
+      .addCase(deleteCourse.fulfilled, (state, action) => {
+        state.courses = state.courses.filter(
+          (course) => course.id !== action.payload
+        );
       });
   },
 });

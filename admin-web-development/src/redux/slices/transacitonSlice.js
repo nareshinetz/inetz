@@ -1,56 +1,55 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import axios from "axios";
 
-const API_URL = "http://localhost:8080/payments";
+const API_URL = "http://localhost:8082/payment";
 
-/* ================= FETCH ALL PAYMENTS ================= */
+/* ================= FETCH ================= */
 export const fetchTransactions = createAsyncThunk(
-  "transactions/fetchTransactions",
-  async (_, { rejectWithValue }) => {
-    try {
-      const res = await fetch(API_URL);
-      if (!res.ok) throw new Error("Failed to fetch transactions");
-      return await res.json();
-    } catch (err) {
-      return rejectWithValue(err.message);
-    }
+  "transactions/fetch",
+  async ({ page = 1, size = 10 } = {}) => {
+    const res = await axios.get(`${API_URL}/all?page=${page}&size=${size}`);
+    // Map paymentId → id for AgGrid table actions
+    return res.data.data.content.map((t) => ({
+      ...t,
+      id: t.paymentId,              // important for table actions
+      totalFees: t.totalFees || "-",  // default if missing
+      pendingAmount: t.pendingAmount || "-", // default if missing
+      status: t.status || "Completed",
+      paymentMode: t.paymentMode || "-",
+    }));
   }
 );
 
-/* ================= ADD PAYMENT ================= */
+/* ================= ADD ================= */
 export const addTransaction = createAsyncThunk(
   "transactions/addTransaction",
   async (paymentData, { rejectWithValue }) => {
     try {
-      const res = await fetch(API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...paymentData,
-          studentId: String(paymentData.studentId), // ✅ normalize
-        }),
-      });
-
-      if (!res.ok) throw new Error("Failed to add payment");
-      return await res.json();
+      const res = await axios.post(API_URL, paymentData);
+      const t = res.data.data;
+      return {
+        ...t,
+        id: t.paymentId,
+        totalFees: t.totalFees || "-",
+        pendingAmount: t.pendingAmount || "-",
+        status: t.status || "Completed",
+        paymentMode: t.paymentMode || "-",
+      };
     } catch (err) {
-      return rejectWithValue(err.message);
+      return rejectWithValue(err.response?.data?.message || err.message);
     }
   }
 );
 
-/* ================= DELETE PAYMENT ================= */
+/* ================= DELETE ================= */
 export const deleteTransaction = createAsyncThunk(
   "transactions/deleteTransaction",
   async (id, { rejectWithValue }) => {
     try {
-      const res = await fetch(`${API_URL}/${id}`, {
-        method: "DELETE",
-      });
-
-      if (!res.ok) throw new Error("Failed to delete transaction");
+      await axios.delete(`${API_URL}/${id}`);
       return id;
     } catch (err) {
-      return rejectWithValue(err.message);
+      return rejectWithValue(err.response?.data?.message || err.message);
     }
   }
 );
@@ -77,7 +76,7 @@ const transactionSlice = createSlice({
       })
       .addCase(fetchTransactions.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
+        state.error = action.payload || action.error.message;
       })
 
       /* ADD */
@@ -90,7 +89,7 @@ const transactionSlice = createSlice({
       })
       .addCase(addTransaction.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
+        state.error = action.payload || action.error.message;
       })
 
       /* DELETE */

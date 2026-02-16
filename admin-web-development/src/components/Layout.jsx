@@ -1014,8 +1014,8 @@ const Layout = () => {
                 },
                 "&:hover": { backgroundColor: alpha("#ffffff", 0.1) },
               }}
-              selected={isActive("/courselist")}
-              onClick={() => navigate("/courselist")}
+              selected={isActive("/listcourse")}
+              onClick={() => navigate("/listcourse")}
             >
               <ListItemIcon sx={{ color: "inherit" }}>
                 <ListIcon />
